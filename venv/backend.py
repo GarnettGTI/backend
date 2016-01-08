@@ -53,6 +53,7 @@ for comment in sorted(comments, key = liked, reverse = True)[0:5]:
 
 id = len(comments)
 
+print min(empty)
 
 @app.route('/comments', methods=['GET'])
 def show_comments():
@@ -73,8 +74,6 @@ def new_comment():
     global id
     d['id'] = id
     comments.append(d)
-    comments.sort()
-    print sorted(comments, key = liked, reverse = True)[0:5]
     id = id + 1
     return jsonify(
     d
@@ -88,17 +87,27 @@ def like_comment(id):
         for comment in comments:
             if int(comment['id']) == int(id):
                 comment['like'] += 1
+                if comment not in empty:
+                    if comment['like'] > empty[len(empty) - 1]['like']:
+                        if len(empty) == 5:
+                            empty.pop(4)
+                            empty.append(comment)
+                        else:
+                            empty.append(comment)
+                empty.sort(key = liked, reverse = True)
 
     else:
         for comment in comments:
             if int(comment['id']) == int(id):
                 comments.pop(comments.index(comment))
+                empty.pop(empty.index(comment))
     return 'Done'
 
 
 @app.route('/most_liked_comments', methods=['GET'])
 def most_liked_comments():
     print empty
+    print empty[len(empty) - 1]
     return jsonify(
     {
     'data': empty
